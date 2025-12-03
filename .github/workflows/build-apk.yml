@@ -38,11 +38,9 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Build APK with Gradle
+        working-directory: android
         run: |
-          cd android
-          chmod +x gradlew
-          sed -i 's/\r$//' gradlew
-          ./gradlew assembleDebug --stacktrace
+          bash gradlew assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
