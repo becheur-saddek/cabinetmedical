@@ -1,0 +1,5 @@
+{
+  "name": "MediCabinet Pro",
+  "description": "Application de gestion de cabinet médical moderne et offline-first. Gestion des patients, rendez-vous, et génération d'ordonnances PDF.",
+  "requestFramePermissions": []
+}
