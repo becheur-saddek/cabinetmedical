@@ -1,14 +1,8 @@
-apply plugin: 'com.android.application'
+﻿apply plugin: 'com.android.application'
 
 android {
     namespace "com.medicabinet.pro"
     compileSdk rootProject.ext.compileSdkVersion
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-
     defaultConfig {
         applicationId "com.medicabinet.pro"
         minSdkVersion rootProject.ext.minSdkVersion

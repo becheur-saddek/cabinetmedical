@@ -1,4 +1,4 @@
-name: Build Android APK
+﻿name: Build Android APK
 
 on:
   push:
@@ -20,32 +20,24 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build web assets
         run: npm run build
-
-      - name: Sync Capacitor
-        run: npx cap sync android
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
-          cache: 'gradle'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Make gradlew executable
-        working-directory: android
-        run: chmod +x gradlew
-
       - name: Build APK with Gradle
         working-directory: android
         run: |
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          bash gradlew assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
