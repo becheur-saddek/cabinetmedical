@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
-  FileText, 
-  Calendar, 
-  Settings, 
-  Menu, 
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
+  Calendar,
+  Settings,
+  Menu,
   ClipboardList,
   Stethoscope,
   LogOut,
@@ -28,7 +28,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
     return localStorage.getItem('theme') === 'dark';
   });
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  
+
   // Safe access to doctor name with optional chaining
   const profile = db.getDoctorProfile();
   const doctorName = profile?.name || 'Docteur';
@@ -65,14 +65,14 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
     <div className="flex h-screen bg-gray-100 dark:bg-slate-900 overflow-hidden transition-colors duration-300">
       {/* Mobile Backdrop */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-20 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside 
+      <aside
         className={`
           fixed lg:static inset-y-0 left-0 z-30 w-64 bg-slate-900 dark:bg-slate-950 text-white transform transition-transform duration-300 ease-in-out flex flex-col border-r border-slate-800
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -91,8 +91,8 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) => `
                 flex items-center px-4 py-3 rounded-lg transition-colors
-                ${isActive 
-                  ? 'bg-teal-600 text-white shadow-md' 
+                ${isActive
+                  ? 'bg-teal-600 text-white shadow-md'
                   : 'text-slate-300 hover:bg-slate-800 hover:text-white'}
               `}
             >
@@ -103,7 +103,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
         </nav>
 
         <div className="p-4 border-t border-slate-800 bg-slate-900 dark:bg-slate-950 flex-shrink-0 space-y-3">
-           <button
+          <button
             type="button"
             onClick={() => setIsDarkMode(!isDarkMode)}
             className="w-full flex items-center px-4 py-2 text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
@@ -112,7 +112,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
             <span className="font-medium">{isDarkMode ? 'Mode Clair' : 'Mode Sombre'}</span>
           </button>
 
-          <button 
+          <button
             type="button"
             onClick={handleLogoutClick}
             className="w-full flex items-center px-4 py-2 text-red-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
@@ -120,14 +120,17 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
             <LogOut className="w-5 h-5 mr-3" />
             <span className="font-medium">Déconnexion</span>
           </button>
-          
+
           <div className="flex items-center gap-3 pt-3 border-t border-slate-800">
             <div className="w-10 h-10 rounded-full bg-teal-500 flex items-center justify-center text-white font-bold">
               Dr
             </div>
             <div className="overflow-hidden">
               <p className="text-sm font-semibold text-white truncate">{doctorName.split(' ').slice(0, 2).join(' ')}</p>
-              <p className="text-xs text-slate-400">En ligne</p>
+              <div className="flex justify-between items-center">
+                <p className="text-xs text-slate-400">En ligne</p>
+                <p className="text-[10px] text-slate-600">v2.1</p>
+              </div>
             </div>
           </div>
         </div>
@@ -141,7 +144,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
             <Stethoscope className="w-6 h-6 text-teal-600" />
             <span className="font-bold text-gray-800 dark:text-white">MediCab</span>
           </div>
-          <button 
+          <button
             type="button"
             onClick={() => setSidebarOpen(true)}
             className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg"
@@ -163,20 +166,20 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
           <div className="bg-white dark:bg-slate-800 rounded-xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-700">
             <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2 flex items-center gap-2">
-               <LogOut size={20} className="text-red-500" />
-               Déconnexion
+              <LogOut size={20} className="text-red-500" />
+              Déconnexion
             </h3>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
               Voulez-vous vraiment vous déconnecter et retourner à l'écran d'accueil ?
             </p>
             <div className="flex justify-end gap-3">
-              <button 
+              <button
                 onClick={() => setShowLogoutConfirm(false)}
                 className="px-4 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 font-medium transition-colors"
               >
                 Annuler
               </button>
-              <button 
+              <button
                 onClick={confirmLogout}
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-colors shadow-lg shadow-red-600/20"
               >
