@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { App } from '@capacitor/app';
 import { db } from '../services/db';
 import { Patient, Gender, Prescription } from '../types';
 import { generatePrescriptionPDF, generateReferralPDF, generateSickLeavePDF } from '../utils/pdfGenerator';
@@ -108,6 +109,27 @@ const Patients: React.FC = () => {
     setFormData({ gender: Gender.Male });
   };
 
+  useEffect(() => {
+    // Handle Android Back Button
+    const setupBackButton = async () => {
+      const { remove } = await App.addListener('backButton', () => {
+        if (selectedPatientHistory) {
+          setSelectedPatientHistory(null);
+        } else if (isAddModalOpen) {
+          setIsAddModalOpen(false);
+        } else {
+          App.exitApp();
+        }
+      });
+      return remove;
+    };
+
+    const removeListener = setupBackButton();
+    return () => {
+      removeListener.then(remove => remove());
+    };
+  }, [selectedPatientHistory, isAddModalOpen]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -198,10 +220,10 @@ const Patients: React.FC = () => {
 
       {/* History & Details Modal */}
       {selectedPatientHistory && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
-          <div className="flex-1 flex flex-col w-full h-full overflow-hidden">
+        <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900 overflow-y-auto md:overflow-hidden">
+          <div className="flex-1 flex flex-col md:flex-row w-full h-full">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b dark:border-slate-800 flex justify-between items-center bg-teal-600 text-white shrink-0">
+            <div className="px-6 py-4 border-b dark:border-slate-800 flex justify-between items-center bg-teal-600 text-white shrink-0 sticky top-0 z-20">
               <div>
                 <h2 className="text-lg font-bold">Dossier Patient</h2>
                 <p className="text-sm text-teal-100 opacity-90">
@@ -215,7 +237,7 @@ const Patients: React.FC = () => {
 
             <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
               {/* Sidebar: Patient Info */}
-              <div className="w-full md:w-80 bg-slate-50 dark:bg-slate-950 p-6 border-r border-gray-200 dark:border-slate-800 overflow-y-auto shrink-0">
+              <div className="w-full md:w-80 bg-slate-50 dark:bg-slate-950 p-6 border-r border-gray-200 dark:border-slate-800 shrink-0 md:overflow-y-auto">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                   <User className="text-teal-600" size={20} />
                   Informations
@@ -283,7 +305,7 @@ const Patients: React.FC = () => {
               </div>
 
               {/* Main Content Area (Tabs + Content) */}
-              <div className="flex-1 flex flex-col h-full bg-white dark:bg-slate-900 overflow-hidden">
+              <div className="flex-1 flex flex-col h-full bg-white dark:bg-slate-900 overflow-hidden min-h-[500px]">
                 {/* Tabs / Toolbar */}
                 <div className="p-4 border-b dark:border-slate-800 bg-gray-50 dark:bg-slate-950 flex items-center gap-2 shrink-0 overflow-x-auto">
                   <button
