@@ -1,4 +1,7 @@
 import { jsPDF } from 'jspdf';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { FileOpener } from '@capacitor-community/file-opener';
+import { Capacitor } from '@capacitor/core';
 import { Patient, Prescription } from '../types';
 import { db } from '../services/db';
 
@@ -9,12 +12,12 @@ const addCommonHeader = (doc: jsPDF, doctor: any) => {
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(40, 100, 150);
   doc.text(doctor.name, 20, 20);
-  
+
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100);
   doc.text(doctor.specialty, 20, 26);
-  
+
   doc.text(doctor.address, 20, 31);
   doc.text(`Tél: ${doctor.phone}`, 20, 36);
   doc.text(`Email: ${doctor.email}`, 20, 41);
@@ -31,12 +34,38 @@ const addCommonFooter = (doc: jsPDF, pageHeight: number, pageWidth: number) => {
   doc.text(quote, pageWidth / 2, pageHeight - 15, { align: 'center' });
 };
 
+const saveAndOpenPDF = async (doc: jsPDF, fileName: string) => {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const base64Data = doc.output('datauristring').split(',')[1];
+
+      const result = await Filesystem.writeFile({
+        path: fileName,
+        data: base64Data,
+        directory: Directory.Documents,
+        // encoding: Encoding.UTF8 // Base64 is default for binary
+      });
+
+      await FileOpener.open({
+        filePath: result.uri,
+        contentType: 'application/pdf',
+      });
+
+    } catch (error) {
+      console.error('Error saving PDF', error);
+      alert('Erreur lors du téléchargement du PDF');
+    }
+  } else {
+    doc.save(fileName);
+  }
+};
+
 export const generatePrescriptionPDF = (patient: Patient, prescription: Prescription) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const doctor = db.getDoctorProfile();
-  
+
   addCommonHeader(doc, doctor);
 
   // Date
@@ -50,7 +79,7 @@ export const generatePrescriptionPDF = (patient: Patient, prescription: Prescrip
   doc.text("Patient(e):", 20, 60);
   doc.setFont('helvetica', 'normal');
   doc.text(`${patient.firstName} ${patient.lastName}`, 50, 60);
-  
+
   doc.setFont('helvetica', 'bold');
   doc.text("Âge:", 20, 66);
   doc.setFont('helvetica', 'normal');
@@ -64,7 +93,7 @@ export const generatePrescriptionPDF = (patient: Patient, prescription: Prescrip
 
   // Medications
   let yPos = 110;
-  
+
   prescription.medications.forEach((med, index) => {
     if (yPos > 240) {
       doc.addPage();
@@ -74,17 +103,17 @@ export const generatePrescriptionPDF = (patient: Patient, prescription: Prescrip
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text(`• ${med.name} ${med.dosage}`, 25, yPos);
-    
+
     yPos += 7;
     doc.setFontSize(10);
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(60);
     doc.text(med.instructions, 30, yPos);
-    
+
     yPos += 5;
     doc.setFont('helvetica', 'normal');
     doc.text(`Durée: ${med.duration}`, 30, yPos);
-    
+
     yPos += 15;
     doc.setTextColor(0);
   });
@@ -93,11 +122,13 @@ export const generatePrescriptionPDF = (patient: Patient, prescription: Prescrip
   const signatureY = Math.max(yPos + 20, 240);
   doc.setFontSize(11);
   doc.text("Signature & Cachet", pageWidth - 70, signatureY);
-  
+
   addCommonFooter(doc, pageHeight, pageWidth);
 
-  doc.save(`Ordonnance_${patient.lastName}_${dateStr}.pdf`);
-  alert("L'ordonnance a été générée et téléchargée.");
+  saveAndOpenPDF(doc, `Ordonnance_${patient.lastName}_${dateStr}.pdf`);
+  if (!Capacitor.isNativePlatform()) {
+    alert("L'ordonnance a été générée et téléchargée.");
+  }
 };
 
 export const generateReferralPDF = (patient: Patient, content: string) => {
@@ -105,7 +136,7 @@ export const generateReferralPDF = (patient: Patient, content: string) => {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const doctor = db.getDoctorProfile();
-  
+
   addCommonHeader(doc, doctor);
 
   const dateStr = new Date().toLocaleDateString('fr-FR');
@@ -137,8 +168,10 @@ export const generateReferralPDF = (patient: Patient, content: string) => {
 
   addCommonFooter(doc, pageHeight, pageWidth);
 
-  doc.save(`Orientation_${patient.lastName}.pdf`);
-  alert("Lettre d'orientation générée.");
+  saveAndOpenPDF(doc, `Orientation_${patient.lastName}.pdf`);
+  if (!Capacitor.isNativePlatform()) {
+    alert("Lettre d'orientation générée.");
+  }
 };
 
 export const generateSickLeavePDF = (patient: Patient, days: number, startDate: string, endDate: string) => {
@@ -146,7 +179,7 @@ export const generateSickLeavePDF = (patient: Patient, days: number, startDate: 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const doctor = db.getDoctorProfile();
-  
+
   addCommonHeader(doc, doctor);
 
   const dateStr = new Date().toLocaleDateString('fr-FR');
@@ -169,10 +202,10 @@ export const generateSickLeavePDF = (patient: Patient, days: number, startDate: 
 
   doc.text(`Je soussigné(e), Dr. ${doctor.name},`, 20, bodyY);
   doc.text(`Certifie avoir examiné ce jour le patient:`, 20, bodyY + lineHeight);
-  
+
   doc.setFont('helvetica', 'bold');
   doc.text(`${patient.lastName} ${patient.firstName}`, 95, bodyY + lineHeight);
-  
+
   doc.setFont('helvetica', 'normal');
   const age = new Date().getFullYear() - new Date(patient.birthDate).getFullYear();
   doc.text(`(Âgé de ${age} ans)`, 20, bodyY + lineHeight * 2);
@@ -185,7 +218,7 @@ export const generateSickLeavePDF = (patient: Patient, days: number, startDate: 
   doc.text(`Sauf complications, du :`, 20, bodyY + lineHeight * 4.5);
   doc.setFont('helvetica', 'bold');
   doc.text(`${new Date(startDate).toLocaleDateString('fr-FR')}`, 70, bodyY + lineHeight * 4.5);
-  
+
   doc.setFont('helvetica', 'normal');
   doc.text(`Au :`, 110, bodyY + lineHeight * 4.5);
   doc.setFont('helvetica', 'bold');
@@ -203,6 +236,8 @@ export const generateSickLeavePDF = (patient: Patient, days: number, startDate: 
 
   addCommonFooter(doc, pageHeight, pageWidth);
 
-  doc.save(`Arret_Travail_${patient.lastName}.pdf`);
-  alert("Certificat de maladie généré.");
+  saveAndOpenPDF(doc, `Arret_Travail_${patient.lastName}.pdf`);
+  if (!Capacitor.isNativePlatform()) {
+    alert("Certificat de maladie généré.");
+  }
 };

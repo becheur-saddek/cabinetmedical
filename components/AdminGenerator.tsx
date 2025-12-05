@@ -1,19 +1,18 @@
-
 import React, { useState } from 'react';
-import { activationService } from '../services/activation';
+import { generateLicenseKey } from '../utils/license';
 import { Key, Lock, Copy } from 'lucide-react';
 
 const AdminGenerator: React.FC = () => {
   const [adminPass, setAdminPass] = useState('');
   const [isUnlocked, setIsUnlocked] = useState(false);
-  
+
   const [clientId, setClientId] = useState('');
   const [generatedKey, setGeneratedKey] = useState('');
 
-  // Simple hardcoded protection for this page so clients don't use it easily
+  // Simple hardcoded protection
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
-    if (adminPass === 'admin123') { // Simple password for the dev
+    if (adminPass === 'admin123') {
       setIsUnlocked(true);
     } else {
       alert('Accès refusé');
@@ -22,7 +21,7 @@ const AdminGenerator: React.FC = () => {
 
   const handleGenerate = () => {
     if (!clientId) return;
-    const key = activationService.generateKeyForId(clientId.trim());
+    const key = generateLicenseKey(clientId.trim());
     setGeneratedKey(key);
   };
 
@@ -33,9 +32,9 @@ const AdminGenerator: React.FC = () => {
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <Lock className="text-red-500" /> Zone Admin
           </h2>
-          <input 
-            type="password" 
-            placeholder="Mot de passe admin" 
+          <input
+            type="password"
+            placeholder="Mot de passe admin"
             className="w-full p-2 border rounded mb-4"
             value={adminPass}
             onChange={e => setAdminPass(e.target.value)}
@@ -62,8 +61,8 @@ const AdminGenerator: React.FC = () => {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">ID du Client (ex: MED-X9A2)</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               className="w-full p-3 border rounded-lg font-mono text-lg uppercase focus:ring-2 focus:ring-teal-500 outline-none"
               placeholder="MED-XXXX"
               value={clientId}
@@ -71,7 +70,7 @@ const AdminGenerator: React.FC = () => {
             />
           </div>
 
-          <button 
+          <button
             onClick={handleGenerate}
             disabled={!clientId}
             className="w-full py-3 bg-teal-600 text-white rounded-lg font-bold hover:bg-teal-700 disabled:opacity-50"
@@ -82,9 +81,9 @@ const AdminGenerator: React.FC = () => {
           {generatedKey && (
             <div className="mt-6 bg-green-50 p-4 rounded-xl border border-green-200 animate-fade-in">
               <p className="text-center text-sm text-green-700 font-medium mb-2">Clé d'activation :</p>
-              <div 
+              <div
                 className="text-3xl font-mono font-bold text-center text-green-800 tracking-widest cursor-pointer select-all flex items-center justify-center gap-2"
-                onClick={() => {navigator.clipboard.writeText(generatedKey); alert('Copié !')}}
+                onClick={() => { navigator.clipboard.writeText(generatedKey); alert('Copié !') }}
               >
                 {generatedKey}
                 <Copy size={20} className="text-green-600 opacity-50" />
