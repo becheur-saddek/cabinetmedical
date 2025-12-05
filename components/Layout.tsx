@@ -34,6 +34,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
   const doctorName = profile?.name || 'Docteur';
 
   useEffect(() => {
+    alert("Mise à jour v2.2 INSTALLÉE - OK");
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
