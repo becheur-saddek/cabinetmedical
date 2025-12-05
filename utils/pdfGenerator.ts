@@ -42,7 +42,7 @@ const saveAndOpenPDF = async (doc: jsPDF, fileName: string) => {
       const result = await Filesystem.writeFile({
         path: fileName,
         data: base64Data,
-        directory: Directory.Documents,
+        directory: Directory.Cache,
         // encoding: Encoding.UTF8 // Base64 is default for binary
       });
 
