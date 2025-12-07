@@ -34,7 +34,6 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
   const doctorName = profile?.name || 'Docteur';
 
   useEffect(() => {
-    alert("v2.4 - Amélioration gestion PDF");
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
@@ -130,7 +129,7 @@ const Layout: React.FC<LayoutProps> = ({ children, onLogout }) => {
               <p className="text-sm font-semibold text-white truncate">{doctorName.split(' ').slice(0, 2).join(' ')}</p>
               <div className="flex justify-between items-center">
                 <p className="text-xs text-slate-400">En ligne</p>
-                <p className="text-[10px] text-slate-600">v2.4</p>
+                <p className="text-[10px] text-slate-600">v2.5</p>
               </div>
             </div>
           </div>

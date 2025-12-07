@@ -37,19 +37,16 @@ const addCommonFooter = (doc: jsPDF, pageHeight: number, pageWidth: number) => {
 const saveAndOpenPDF = async (doc: jsPDF, fileName: string) => {
   if (Capacitor.isNativePlatform()) {
     try {
-      console.log('[PDF] Starting PDF save for:', fileName);
-
       // Generate base64 data
       const base64Data = doc.output('datauristring').split(',')[1];
-      console.log('[PDF] Base64 generated, length:', base64Data.length);
 
-      // Write to filesystem
+      // Save to Documents folder (visible in file manager)
       const result = await Filesystem.writeFile({
-        path: fileName,
+        path: `MediCabinet/${fileName}`,
         data: base64Data,
-        directory: Directory.Cache,
+        directory: Directory.Documents,
+        recursive: true, // Create MediCabinet folder if not exists
       });
-      console.log('[PDF] File written to:', result.uri);
 
       // Try to open with FileOpener
       try {
@@ -57,32 +54,32 @@ const saveAndOpenPDF = async (doc: jsPDF, fileName: string) => {
           filePath: result.uri,
           contentType: 'application/pdf',
         });
-        console.log('[PDF] File opened successfully');
       } catch (openError: any) {
-        console.error('[PDF] FileOpener failed:', openError);
-        // Fallback: show message with file path
-        alert(`PDF enregistré dans le cache.\n\nChemin: ${result.uri}\n\nUtilisez un gestionnaire de fichiers pour l'ouvrir.`);
+        // FileOpener failed - use Share API instead
+        try {
+          const { Share } = await import('@capacitor/share');
+          await Share.share({
+            title: fileName,
+            text: 'Document PDF généré par MediCabinet Pro',
+            url: result.uri,
+            dialogTitle: 'Ouvrir ou partager le PDF',
+          });
+        } catch (shareError) {
+          // Show file location if share also fails
+          alert(`✅ PDF sauvegardé !\n\nDossier: Documents/MediCabinet/\nFichier: ${fileName}\n\nOuvrez votre gestionnaire de fichiers pour le voir.`);
+        }
       }
 
     } catch (error: any) {
-      console.error('[PDF] Error details:', JSON.stringify(error));
-
-      // Fallback: Try browser download
+      console.error('[PDF] Error:', error);
+      // Last resort: try blob download (may not work on all Android)
       try {
-        console.log('[PDF] Trying fallback download...');
         const blob = doc.output('blob');
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        alert('PDF téléchargé (mode fallback). Vérifiez vos téléchargements.');
-      } catch (fallbackError) {
-        console.error('[PDF] Fallback also failed:', fallbackError);
-        alert(`Erreur PDF: ${error?.message || 'Échec de la génération'}\n\nVérifiez que l'app a les permissions de stockage.`);
+        window.open(url, '_blank');
+        alert(`PDF généré. Si rien ne s'ouvre, votre navigateur ne supporte pas cette action.`);
+      } catch (e) {
+        alert(`Erreur: ${error?.message || 'Impossible de créer le PDF'}`);
       }
     }
   } else {
