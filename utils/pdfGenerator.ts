@@ -45,7 +45,7 @@ const saveAndOpenPDF = async (doc: jsPDF, fileName: string) => {
         path: `MediCabinet/${fileName}`,
         data: base64Data,
         directory: Directory.Documents,
-        recursive: true, // Create MediCabinet folder if not exists
+        recursive: true,
       });
 
       // Try to open with FileOpener
@@ -55,32 +55,13 @@ const saveAndOpenPDF = async (doc: jsPDF, fileName: string) => {
           contentType: 'application/pdf',
         });
       } catch (openError: any) {
-        // FileOpener failed - use Share API instead
-        try {
-          const { Share } = await import('@capacitor/share');
-          await Share.share({
-            title: fileName,
-            text: 'Document PDF généré par MediCabinet Pro',
-            url: result.uri,
-            dialogTitle: 'Ouvrir ou partager le PDF',
-          });
-        } catch (shareError) {
-          // Show file location if share also fails
-          alert(`✅ PDF sauvegardé !\n\nDossier: Documents/MediCabinet/\nFichier: ${fileName}\n\nOuvrez votre gestionnaire de fichiers pour le voir.`);
-        }
+        // FileOpener failed - show location message
+        alert(`✅ PDF sauvegardé avec succès !\n\n📁 Emplacement:\nDocuments → MediCabinet → ${fileName}\n\nOuvrez votre gestionnaire de fichiers pour le visualiser.`);
       }
 
     } catch (error: any) {
       console.error('[PDF] Error:', error);
-      // Last resort: try blob download (may not work on all Android)
-      try {
-        const blob = doc.output('blob');
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
-        alert(`PDF généré. Si rien ne s'ouvre, votre navigateur ne supporte pas cette action.`);
-      } catch (e) {
-        alert(`Erreur: ${error?.message || 'Impossible de créer le PDF'}`);
-      }
+      alert(`❌ Erreur lors de la création du PDF.\n\nDétail: ${error?.message || 'Erreur inconnue'}\n\nVérifiez les permissions de stockage.`);
     }
   } else {
     doc.save(fileName);
