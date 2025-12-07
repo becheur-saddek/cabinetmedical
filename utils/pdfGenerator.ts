@@ -37,23 +37,53 @@ const addCommonFooter = (doc: jsPDF, pageHeight: number, pageWidth: number) => {
 const saveAndOpenPDF = async (doc: jsPDF, fileName: string) => {
   if (Capacitor.isNativePlatform()) {
     try {
-      const base64Data = doc.output('datauristring').split(',')[1];
+      console.log('[PDF] Starting PDF save for:', fileName);
 
+      // Generate base64 data
+      const base64Data = doc.output('datauristring').split(',')[1];
+      console.log('[PDF] Base64 generated, length:', base64Data.length);
+
+      // Write to filesystem
       const result = await Filesystem.writeFile({
         path: fileName,
         data: base64Data,
         directory: Directory.Cache,
-        // encoding: Encoding.UTF8 // Base64 is default for binary
       });
+      console.log('[PDF] File written to:', result.uri);
 
-      await FileOpener.open({
-        filePath: result.uri,
-        contentType: 'application/pdf',
-      });
+      // Try to open with FileOpener
+      try {
+        await FileOpener.open({
+          filePath: result.uri,
+          contentType: 'application/pdf',
+        });
+        console.log('[PDF] File opened successfully');
+      } catch (openError: any) {
+        console.error('[PDF] FileOpener failed:', openError);
+        // Fallback: show message with file path
+        alert(`PDF enregistré dans le cache.\n\nChemin: ${result.uri}\n\nUtilisez un gestionnaire de fichiers pour l'ouvrir.`);
+      }
 
-    } catch (error) {
-      console.error('Error saving PDF', error);
-      alert('Erreur lors du téléchargement du PDF');
+    } catch (error: any) {
+      console.error('[PDF] Error details:', JSON.stringify(error));
+
+      // Fallback: Try browser download
+      try {
+        console.log('[PDF] Trying fallback download...');
+        const blob = doc.output('blob');
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        alert('PDF téléchargé (mode fallback). Vérifiez vos téléchargements.');
+      } catch (fallbackError) {
+        console.error('[PDF] Fallback also failed:', fallbackError);
+        alert(`Erreur PDF: ${error?.message || 'Échec de la génération'}\n\nVérifiez que l'app a les permissions de stockage.`);
+      }
     }
   } else {
     doc.save(fileName);
