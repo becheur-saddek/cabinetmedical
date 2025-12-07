@@ -237,7 +237,7 @@ const Patients: React.FC = () => {
 
             <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
               {/* Sidebar: Patient Info */}
-              <div className="w-full md:w-80 bg-slate-50 dark:bg-slate-950 p-6 border-r border-gray-200 dark:border-slate-800 shrink-0 md:overflow-y-auto">
+              <div className="w-full md:w-80 bg-slate-50 dark:bg-slate-950 p-6 border-r border-gray-200 dark:border-slate-800 shrink-0 overflow-y-auto max-h-[40vh] md:max-h-full">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                   <User className="text-teal-600" size={20} />
                   Informations

@@ -26,7 +26,10 @@ jobs:
         run: npm run build
 
       - name: Sync Capacitor
-        run: npx cap sync android
+        run: |
+          npx cap sync android
+          echo "=== Verifying Capacitor plugins are synced ==="
+          cat android/app/capacitor.build.gradle
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -50,5 +53,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-FINAL-v2.1.apk
+          name: app-debug-v2.3-FIXED.apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
